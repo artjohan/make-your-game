@@ -1,15 +1,12 @@
-import { gameElements, mapTerrain } from "./mapping.js"
+import { mapTerrain } from "./mapping.js"
 import { maps } from "./maps.js"
 import { Player } from "./gameelements.js"
 
-export const gameInfo = {
-    hasWon: false,
-    lives: 3,
-    paused: false,
-    score: 0
-}
-
+export var gameInfo = {}
+export var gameElements = {}
 export var player
+
+var scrollDistance, leftBoundary, rightBoundary, times, requestID
 
 document.getElementById("startBtn").addEventListener("click", () => {
     document.getElementById("mainMenu").style.display = "none"
@@ -81,21 +78,20 @@ const createPauseMenu = () => {
     var unpause = document.createElement("header")
     unpause.textContent = "Press \"P\" or \"ESC\" to unpause"
     unpause.style.color = "white"
-    unpause.style.left = "100px"
     pauseMenu.appendChild(unpause)
+
+    var toMainMenu = document.createElement("header")
+    toMainMenu.textContent = "Press \"M\" to go back to the main menu"
+    toMainMenu.style.color = "white"
+    toMainMenu.style.marginTop = "100px"
+    toMainMenu.style.marginBottom = "100px"
+    pauseMenu.appendChild(toMainMenu)
 
     var restart = document.createElement("header")
     restart.textContent = "Press \"R\" to restart"
     restart.style.color = "white"
-    restart.style.left = "100px"
-    restart.style.marginTop = "200px"
     pauseMenu.appendChild(restart)
 }
-
-var scrollDistance = 1
-var leftBoundary = 150
-var rightBoundary = 350
-const times = []
 
 const calculateFPS = () => {
     const now = performance.now()
@@ -112,12 +108,12 @@ function gameloop() {
     if(player.position.y < 850 && !gameInfo.hasWon) {
         if(player.stunned) {
             setTimeout(() => {
-                requestAnimationFrame(gameloop)
+                requestID = requestAnimationFrame(gameloop)
                 resetStage()
             }, 1000)
             player.stunned = false
         } else {
-            requestAnimationFrame(gameloop)
+            requestID = requestAnimationFrame(gameloop)
         }
     }
     if(player.position.y > 725) {
@@ -260,7 +256,7 @@ const checkWin = () => {
 }
 
 const addPauseListener = () => {
-    document.addEventListener("keyup", (event) => {
+    document.body.addEventListener("keyup", (event) => {
         if(!player.dead && (event.key === "Escape" || event.key.toLowerCase() === "p")) {
             if(!gameInfo.paused) {
                 gameInfo.paused = true
@@ -275,16 +271,45 @@ const addPauseListener = () => {
             }
         }
         if(event.key.toLowerCase() === "r" && gameInfo.paused) {
+            document.getElementById("arenaDiv").remove()
+            document.getElementById("informationDiv").remove()
+            cancelAnimationFrame(requestID)
+            start(gameInfo.map, false)
+        }
+        if(event.key.toLowerCase() === "m" && gameInfo.paused) {
             location.reload()
         }
     })
     
 }
 
-function start(map) {
+const init = () => {
+    gameElements = {
+        platforms: [],
+        movingPlatforms: [],
+        collisionTerrains: [],
+        linearEnemies: [],
+        points: []
+    }
+    gameInfo.hasWon = false
+    gameInfo.lives = 3
+    gameInfo.paused = false
+    gameInfo.score = 0
+
+    scrollDistance = 1
+    leftBoundary = 150
+    rightBoundary = 350
+    times = []
+}
+
+function start(map, first = true) {
+    init()
+
     createArenaElements()
     mapTerrain(map)
-    addPauseListener()
+    if(first) {
+        addPauseListener()
+    }
     
     Object.values(gameElements).forEach((element) => {
         element.forEach(entity => {

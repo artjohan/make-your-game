@@ -1,5 +1,5 @@
-import { gameElements } from "./mapping.js"
-import { player, gameInfo, resetStage } from "./game.js"
+import { gameElements } from "./game.js"
+import { player, gameInfo } from "./game.js"
 
 export class Player {
     constructor(pos) {

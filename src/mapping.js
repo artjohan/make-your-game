@@ -1,12 +1,6 @@
 import { Platform, MovingPlatform, CollisionTerrain, LinearEnemy, Point } from "./gameelements.js"
+import { gameElements } from "./game.js"
 
-export const gameElements = {
-    platforms: [],
-    movingPlatforms: [],
-    collisionTerrains: [],
-    linearEnemies: [],
-    points: []
-}
 
 export const mapTerrain = (map) => {
     var tileMap = assembleMap(map.tiles)
