@@ -1,0 +1,82 @@
+body {
+    background-color: blue;
+}
+
+.pauseMenu {
+    position: absolute;
+    top: 125px;
+    left: 125px;
+    width: 500px;
+    height: 500px;
+    background: black;
+    opacity: 0.8;
+    text-align: center;
+    padding: 100px;
+    box-sizing: border-box;
+}
+
+.mainMenu {
+    width: 750px;
+    height: 750px;
+    background: black;
+    margin: auto;
+    overflow: hidden;
+    position: relative;
+}
+
+.informationDiv {
+    width: 730px;
+    height: 50px;
+    background-color: black;
+    position: relative;
+    margin: auto;
+    padding: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.scoreboard {
+    font-size: 35px;
+    width: 30%;
+    color: white;
+    position: relative;
+}
+
+.timer {
+    font-size: 35px;
+    width: 30%;
+    color: white;
+    position: relative;
+    text-align: center;
+}
+
+.lifeCounter {
+    font-size: 35px;
+    width: 20%;
+    color: white;
+    position: relative;
+}
+
+.fpsCounter {
+    font-size: 35px;
+    width: 20%;
+    color: white;
+    position: relative;
+}
+
+.arena {
+    width: 750px;
+    height: 750px;
+    background: black;
+    margin: auto;
+    overflow: hidden;
+    position: relative;
+}
+
+.platformDiv {
+    position: absolute;
+    outline: blue solid 4px;
+    border-radius: 10px;
+}
