@@ -271,6 +271,9 @@ const resetStage = () => {
                 entity.startPos.x = entity.basePos.x
                 entity.startPos.y = entity.basePos.y
             }
+            if(entity.stunned) {
+                entity.stunIndex = 1000
+            }
             entity.draw()
         })
     })
