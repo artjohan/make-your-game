@@ -9,16 +9,31 @@
 </head>
 <body>
     <div id="mainMenu" class="mainMenu">
-        <select name="difficulty" id="difficultySelect">
-            <option value="easy">easy</option>
-            <option value="medium">medium</option>
-            <option value="hard">hard</option>
-        </select>
-        <select name="map" id="mapSelect">
-            <option value="map1Info">map1</option>
-            <option value="map2Info">map2</option>
-        </select>
-        <button id="startBtn">Play!</button>
+        <header style="color: white; font-size: 100px; text-align: center; margin-top: 50px;">
+            Pacmario
+        </header>
+        <header style="color: white; font-size: 40px; text-align: center; margin-top: 35px; margin-bottom: 10px;">
+            How to play
+        </header>
+        <div id="ruleDiv" class="ruleDiv">
+            <p style="color: white; font-size: 18px; text-align: center;">Use the arrow keys to move around, up to jump and down to crouch. You can also press P or ESC to pause</p>
+            <p style="color: white; font-size: 18px; text-align: center;">Gather all the coins to win, but be quick, because the faster you are the more bonus points you get</p>
+            <p style="color: white; font-size: 18px; text-align: center;">You can jump on the ghosts to stun them, but if they touch you when they're moving, you lose a life</p>
+            <p style="color: white; font-size: 18px; text-align: center;">If you run out of lives or the timer hits 0, you die</p>
+        </div>
+        <div id="selectDiv" class="selectDiv">
+            <select class="select" name="difficulty" id="difficultySelect">
+                <option value="easy">EASY</option>
+                <option value="medium">MEDIUM</option>
+                <option value="hard">HARD</option>
+                <option value="impossible">IMPOSSIBLE</option>
+            </select>
+        </div>
+        <div id="difficultyDiv" class="difficultyDiv">
+            <p id="difficultyDesc" style="color: white; font-size: 18px; text-align: center;">Ghosts move slowest and get stunned for 3 seconds. Time limit 5 minutes, score not multiplied. Great for casually playing.</p>
+        </div>
+        <div style="text-align: center;"></div>
+        <button class="startBtn" id="startBtn">Play</button>
     </div>
 </body>
 </html>

@@ -1,5 +1,11 @@
+@font-face {
+    font-family: "VT323";
+    src: url("VT323-Regular.ttf");
+}
+
 body {
-    background-color: blue;
+    background-color: rgb(19, 19, 43);
+    font-family: "VT323";
 }
 
 .pauseMenu {
@@ -8,26 +14,103 @@ body {
     left: 125px;
     width: 500px;
     height: 500px;
-    background: black;
-    opacity: 0.8;
+    background: rgba(7, 6, 36, 0.8);
+    opacity: 1;
     text-align: center;
-    padding: 100px;
+    border-radius: 10px;
+    border: solid yellow 3px;
+    padding-top: 100px;
+    padding-bottom: 100px;
     box-sizing: border-box;
+}
+
+.startBtn {
+    width: 100px;
+    height: 40px;
+    border-radius: 10px;
+    border: yellow solid 3px;
+    background: rgba(7, 6, 36, 0.8);
+    font-family: "VT323";
+    font-size: 30px;
+    color: white;
+    transition: all .2s ease-in-out;
+}
+
+.startBtn:hover {
+    cursor: pointer;
+    transform: scale(1.1);
+    background: rgba(13, 11, 71, 0.8);
+}
+
+.select:hover {
+    cursor: pointer;
+    background: rgba(13, 11, 71, 0.8);
+}
+
+.select {
+    width: 400px;
+    text-align: center;
+    font-family: "VT323";
+    font-size: 20px;
+    border-radius: 10px;
+    background: rgba(7, 6, 36, 0.8);
+    border: yellow 3px solid;
+    color: white;
+    transition: all .2s ease-in-out;
+}
+
+.select:focus {
+    outline: none;
 }
 
 .mainMenu {
     width: 750px;
     height: 750px;
-    background: black;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8)), url("/media/menubackground.png");
     margin: auto;
     overflow: hidden;
     position: relative;
+    text-align: center;
+    border-radius: 10px;
+    border: yellow 6px solid;
+}
+
+.ruleDiv {
+    position: relative;
+    background: rgba(7, 6, 36, 0.8);
+    border-radius: 10px;
+    margin: auto;
+    padding: 10px;
+    padding-bottom: 30px;
+    width: 50%;
+    height: 200px;
+    display: inline-block;
+    border: yellow 3px solid;
+}
+
+.difficultyDiv {
+    position: relative;
+    background: rgba(7, 6, 36, 0.8);
+    border-radius: 10px;
+    margin: auto;
+    padding: 10px;
+    padding-bottom: 30px;
+    margin-bottom: 25px;
+    width: 50%;
+    height: 80px;
+    display: inline-block;
+    border: yellow 3px solid;
+}
+
+.selectDiv {
+   position: relative;
+   padding: 15px;
 }
 
 .informationDiv {
     width: 730px;
     height: 50px;
-    background-color: black;
+    background: rgba(7, 6, 36, 0.8);
     position: relative;
     margin: auto;
     padding: 10px;
@@ -35,17 +118,19 @@ body {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    border-radius: 5px;
+    border: solid yellow 6px;
 }
 
 .scoreboard {
-    font-size: 35px;
+    font-size: 40px;
     width: 30%;
     color: white;
     position: relative;
 }
 
 .timer {
-    font-size: 35px;
+    font-size: 40px;
     width: 30%;
     color: white;
     position: relative;
@@ -53,14 +138,14 @@ body {
 }
 
 .lifeCounter {
-    font-size: 35px;
+    font-size: 40px;
     width: 20%;
     color: white;
     position: relative;
 }
 
 .fpsCounter {
-    font-size: 35px;
+    font-size: 40px;
     width: 20%;
     color: white;
     position: relative;
@@ -73,10 +158,13 @@ body {
     margin: auto;
     overflow: hidden;
     position: relative;
+    border-radius: 5px;
+    border: solid yellow 6px;
 }
 
 .platformDiv {
     position: absolute;
     outline: blue solid 4px;
+    background: black;
     border-radius: 10px;
 }
