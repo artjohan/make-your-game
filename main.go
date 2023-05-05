@@ -27,6 +27,7 @@ func main() {
 	}
 }
 
+// handles the main page
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	temp, err := template.ParseFiles("templates/index.html")
 	if err != nil {

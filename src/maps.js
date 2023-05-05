@@ -1,4 +1,6 @@
 // 1 - collisionterrains, 2 - platforms, 3 - linearenemies, 4 - points, 5 and onwards - movingplatforms, each one has unique number for easier configuration
+// tiles are 30 by 30, each tile corresponds to 25 pixels in the viewport
+// as this is a scrolling map, there are multiple 30 by 30 tiles that go side by side to create the final map
 const map1tile1 = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -98,6 +100,7 @@ const map1tile3 = [
     [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 8, 8, 8, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1]
 ]
 
+// object holding information about all the maps, the necessary map information will be retrieved and rendered into the game, with off screen elements being hidden to improve performance
 export const maps = {
     map1Info: {
         tiles: [
@@ -107,6 +110,7 @@ export const maps = {
             x: 0,
             y: 550
         },
+        // the numbers correspond to the unique moving platforms, as they have unique properties in terms of moving distance and speed, they are also represented by unique digits in the tilemap
         5: {
             distance: {
                 x: 0,
