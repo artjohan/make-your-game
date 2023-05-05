@@ -32,7 +32,7 @@ export class Player {
         this.defaultVelocity = 1.5
         this.originalVelocity = 1.5
 
-        this.animationArray = ["media/pacphase0.png", "media/pacphase1.png", "media/pacphase2.png", "media/pacphase1.png"]
+        this.animationArray = ["../media/pacphase0.png", "../media/pacphase1.png", "../media/pacphase2.png", "../media/pacphase1.png"]
         this.animationIndex = 0
 
         document.addEventListener("keydown", this.move)
@@ -312,7 +312,7 @@ export class CollisionTerrain {
         if(!this.terrainDiv) {
             this.terrainDiv = document.createElement("div")
             this.terrainDiv.id = "terrainDiv"
-            this.terrainDiv.style.background = "url('media/bluebrick.png')"
+            this.terrainDiv.style.background = "url('../media/bluebrick.png')"
             this.terrainDiv.style.position = "absolute"
             document.getElementById("arenaDiv").appendChild(this.terrainDiv)
         }
@@ -391,13 +391,13 @@ export class LinearEnemy {
         if(!this.linearEnemy) {
             this.linearEnemy = document.createElement("div")
             this.linearEnemy.id = "linearEnemy"
-            this.linearEnemy.style.backgroundImage = "url('media/ghost" + this.ghostNr + ".png')"
+            this.linearEnemy.style.backgroundImage = "url('../media/ghost" + this.ghostNr + ".png')"
             this.linearEnemy.style.position = "absolute"
             document.getElementById("arenaDiv").appendChild(this.linearEnemy)
         }
         toggleVisibility(this, "linearEnemy")
         if(this.stunned) {
-            this.linearEnemy.style.backgroundImage = "url('media/vulnerableghost.png')"
+            this.linearEnemy.style.backgroundImage = "url('../media/vulnerableghost.png')"
         }
         this.linearEnemy.style.width = `${this.width}px`
         this.linearEnemy.style.left = `${this.position.x}px`
@@ -417,7 +417,7 @@ export class LinearEnemy {
                 this.stunned = false
                 this.velocity.x = this.prevSpeed
                 this.stunIndex = 0
-                this.linearEnemy.style.backgroundImage = "url('media/ghost" + this.ghostNr + ".png')"
+                this.linearEnemy.style.backgroundImage = "url('../media/ghost" + this.ghostNr + ".png')"
             }
         } else {
             if(this.hasBeenStunned()) {
@@ -510,7 +510,7 @@ export class Point {
         if(!this.pointDiv) {
             this.pointDiv = document.createElement("div")
             this.pointDiv.id = "pointDiv"
-            this.pointDiv.style.background = "url('media/coin.png')"
+            this.pointDiv.style.background = "url('../media/coin.png')"
             this.pointDiv.style.position = "absolute"
             document.getElementById("arenaDiv").appendChild(this.pointDiv)
         }

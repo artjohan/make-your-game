@@ -6,7 +6,34 @@ export var gameInfo = {}
 export var gameElements = {}
 export var player
 
-var scrollDistance, leftBoundary, rightBoundary, times, requestID, timerStart, now, minutes, seconds
+var leftBoundary, rightBoundary, times, requestID, timerStart, now, minutes, seconds
+
+const init = () => {
+    gameElements = {
+        platforms: [],
+        movingPlatforms: [],
+        collisionTerrains: [],
+        linearEnemies: [],
+        points: []
+    }
+
+    gameInfo.hasWon = false
+    gameInfo.paused = false
+    gameInfo.gameOver = false
+    gameInfo.score = 0
+    gameInfo.scrolledDistance = 0
+    if(gameInfo.enemySpeed === 1) {
+        gameInfo.lives = 1
+    } else {
+        gameInfo.lives = 3
+    }
+
+    leftBoundary = 0
+    rightBoundary = 450
+    seconds = gameInfo.seconds
+    minutes = gameInfo.minutes
+    times = []
+}
 
 function start(map, first = true) {
     init()
@@ -75,6 +102,148 @@ function gameloop() {
     }
 }
 
+const updateTerrain = () => {
+    gameElements.movingPlatforms.forEach(movingPlatform => {
+        movingPlatform.update()
+    })
+    gameElements.linearEnemies.forEach(enemy => {
+        if(enemy.position.y < 800) {
+            enemy.update()
+        } else {
+            enemy.linearEnemy.remove()
+        }
+    })
+    gameElements.points.forEach(point => {
+        if(point.touchesPlayer()) {
+            point.pointDiv.remove()
+            point.collected = true
+            gameInfo.score += (100*gameInfo.scoreMultiplier)
+        }
+    })
+}
+
+const movePlayer = () => {
+    if(player.keyPressed.right) {
+        player.playerDiv.style.transform = "scaleX(1)"
+        if(player.position.x < rightBoundary) {
+            player.velocity.x = player.defaultVelocity
+        } else {
+            player.velocity.x = 0
+            if(gameInfo.scrolledDistance <= gameInfo.map.endPoint-250) {
+                if(gameInfo.scrolledDistance > 0) {
+                    leftBoundary = 250
+                }
+                moveElements(-player.defaultVelocity)
+            } else {
+                rightBoundary = 710
+            }
+        }
+    } else if(player.keyPressed.left) {
+        player.playerDiv.style.transform = "scaleX(-1)"
+        if(player.position.x > leftBoundary) {
+            player.velocity.x = -player.defaultVelocity
+        } else {
+            player.velocity.x = 0
+            if(gameInfo.scrolledDistance > 0) {
+                if(gameInfo.scrolledDistance <= gameInfo.map.endPoint-250) {
+                    rightBoundary = 450
+                }
+                moveElements(player.defaultVelocity)
+            } else {
+                leftBoundary = 0
+            }
+        }
+    } else {
+        player.velocity.x = 0
+        if(player.position.x > rightBoundary+1 && gameInfo.scrolledDistance <= gameInfo.map.endPoint-250) {
+            moveElements(-player.defaultVelocity)
+            player.position.x -= player.defaultVelocity
+        }
+        if(player.position.x < leftBoundary-1 && gameInfo.scrolledDistance > 0) {
+            moveElements(player.defaultVelocity)
+            player.position.x += player.defaultVelocity
+        }
+    }
+}
+
+const terrainCollision = () => {
+    gameElements.platforms.forEach(platform => {
+        if(platform.carriesObject(player)) {
+            player.velocity.y = 0
+        }
+    })
+    gameElements.collisionTerrains.forEach(collisionTerrain => {
+        if(collisionTerrain.carriesObject(player)) {
+            player.velocity.y = 0
+        }
+        if(!collisionTerrain.collidesWithRightSide(player) && !collisionTerrain.collidesWithLeftSide(player) && collisionTerrain.collidesWithBase(player)) {
+            player.velocity.y = 1
+        }
+        if(collisionTerrain.collidesWithRightSide(player)) {
+            player.position.x += player.defaultVelocity
+            player.velocity.x = 0
+        }
+        if(collisionTerrain.collidesWithLeftSide(player)) {
+            player.position.x -= player.defaultVelocity
+            player.velocity.x = 0
+        }
+    })
+}
+
+const moveElements = (amount) => {
+    gameInfo.scrolledDistance -= amount
+    Object.values(gameElements).forEach((element) => {
+        element.forEach(entity => {
+            entity.moveEnvironment(amount)
+        })
+    })
+}
+
+const checkWin = () => {
+    var points = document.querySelectorAll("#pointDiv")
+    if(points.length === 0) {
+        gameInfo.hasWon = true
+    }
+}
+
+const calculateFPS = () => {
+    const now = performance.now()
+    while (times.length > 0 && times[0] <= now - 1000) {
+      times.shift()
+    }
+    times.push(now)
+    return times.length
+}
+
+const updateTimer = () => {
+    now = Date.now()
+    if(now-timerStart >= 1000) {
+        seconds--
+        if(minutes === 0 && seconds < 0 && !gameInfo.hasWon) {
+            player.dead = true
+            gameInfo.lives = 0
+        } else {
+            if(seconds === -1) {
+                minutes--
+                seconds = 59
+            }
+            updateTimerVisual(timer)
+            timerStart = now
+        }
+    }
+}
+
+const updateTimerVisual = (field) => {
+    if(minutes < 10) {
+        field.textContent = "0"
+    }
+    field.textContent += minutes + ":"
+    if(seconds < 10) {
+        field.textContent += "0"
+    }
+    field.textContent += seconds
+}
+
 const createArenaElements = () => {
     const informationDiv = document.createElement("div")
     informationDiv.id = "informationDiv"
@@ -135,44 +304,6 @@ const createPauseMenu = () => {
     restart.style.color = "white"
     restart.style.fontSize = "30px"
     pauseMenu.appendChild(restart)
-}
-
-const calculateFPS = () => {
-    const now = performance.now()
-    while (times.length > 0 && times[0] <= now - 1000) {
-      times.shift()
-    }
-    times.push(now)
-    return times.length
-}
-
-const updateTimer = () => {
-    now = Date.now()
-    if(now-timerStart >= 1000) {
-        seconds--
-        if(minutes === 0 && seconds < 0 && !gameInfo.hasWon) {
-            player.dead = true
-            gameInfo.lives = 0
-        } else {
-            if(seconds === -1) {
-                minutes--
-                seconds = 59
-            }
-            updateTimerVisual(timer)
-            timerStart = now
-        }
-    }
-}
-
-const updateTimerVisual = (field) => {
-    if(minutes < 10) {
-        field.textContent = "0"
-    }
-    field.textContent += minutes + ":"
-    if(seconds < 10) {
-        field.textContent += "0"
-    }
-    field.textContent += seconds
 }
 
 const createEndScreen = () => {
@@ -260,9 +391,9 @@ const createEndScreen = () => {
 const resetStage = () => {
     player.playerDiv.remove()
     player = new Player(gameInfo.map.startPos)
-    scrollDistance = 1
-    leftBoundary = 150
-    rightBoundary = 350
+    leftBoundary = 0
+    rightBoundary = 450
+    gameInfo.scrolledDistance = 0
     Object.values(gameElements).forEach((element) => {
         element.forEach(entity => {
             entity.position.x = entity.basePos.x
@@ -279,97 +410,6 @@ const resetStage = () => {
     })
     gameInfo.lives--
     lifeCounter.textContent = "Lives: " + gameInfo.lives
-}
-
-const updateTerrain = () => {
-    gameElements.movingPlatforms.forEach(movingPlatform => {
-        movingPlatform.update()
-    })
-    gameElements.linearEnemies.forEach(enemy => {
-        if(enemy.position.y < 800) {
-            enemy.update()
-        } else {
-            enemy.linearEnemy.remove()
-        }
-    })
-    gameElements.points.forEach(point => {
-        if(point.touchesPlayer()) {
-            point.pointDiv.remove()
-            point.collected = true
-            gameInfo.score += (100*gameInfo.scoreMultiplier)
-        }
-    })
-}
-
-const movePlayer = () => {
-    if(player.keyPressed.right && player.position.x < rightBoundary) {
-        player.playerDiv.style.transform = "scaleX(1)"
-        player.velocity.x = player.defaultVelocity
-    } else if(player.keyPressed.left && player.position.x > leftBoundary){
-        player.playerDiv.style.transform = "scaleX(-1)"
-        player.velocity.x = -player.defaultVelocity
-    } else {
-        player.velocity.x = 0
-        if(player.keyPressed.right && scrollDistance < gameInfo.map.endPoint) {
-            scrollDistance++
-            if(scrollDistance > 0) {
-                leftBoundary = 350
-            }
-            if(scrollDistance >= gameInfo.map.endPoint) {
-                rightBoundary = 750-player.width
-            }
-            moveElements(-player.defaultVelocity)
-        } else if(player.keyPressed.left && scrollDistance > 0) {
-            scrollDistance--
-            if(scrollDistance <= 0) {
-                leftBoundary = 0
-            }
-            if(scrollDistance < gameInfo.map.endPoint) {
-                rightBoundary = 350
-            }
-            moveElements(player.defaultVelocity)
-        }
-    }
-}
-
-const terrainCollision = () => {
-    gameElements.platforms.forEach(platform => {
-        if(platform.carriesObject(player)) {
-            player.velocity.y = 0
-        }
-    })
-    gameElements.collisionTerrains.forEach(collisionTerrain => {
-        if(collisionTerrain.carriesObject(player)) {
-            player.velocity.y = 0
-        }
-        if(!collisionTerrain.collidesWithRightSide(player) && !collisionTerrain.collidesWithLeftSide(player) && collisionTerrain.collidesWithBase(player)) {
-            player.velocity.y = 1
-        }
-        if(collisionTerrain.collidesWithRightSide(player)) {
-            player.position.x += player.defaultVelocity
-            player.velocity.x = 0
-        }
-        if(collisionTerrain.collidesWithLeftSide(player)) {
-            player.position.x -= player.defaultVelocity
-            player.velocity.x = 0
-        }
-    })
-}
-
-const moveElements = (amount) => {
-    player.playerDiv.style.transform = `scaleX(${-amount/player.defaultVelocity})`
-    Object.values(gameElements).forEach((element) => {
-        element.forEach(entity => {
-            entity.moveEnvironment(amount)
-        })
-    })
-}
-
-const checkWin = () => {
-    var points = document.querySelectorAll("#pointDiv")
-    if(points.length === 0) {
-        gameInfo.hasWon = true
-    }
 }
 
 const addPauseListener = () => {
@@ -398,33 +438,6 @@ const addPauseListener = () => {
         }
     })
     
-}
-
-const init = () => {
-    gameElements = {
-        platforms: [],
-        movingPlatforms: [],
-        collisionTerrains: [],
-        linearEnemies: [],
-        points: []
-    }
-
-    gameInfo.hasWon = false
-    gameInfo.paused = false
-    gameInfo.gameOver = false
-    gameInfo.score = 0
-    if(gameInfo.enemySpeed === 1) {
-        gameInfo.lives = 1
-    } else {
-        gameInfo.lives = 3
-    }
-
-    scrollDistance = 1
-    leftBoundary = 150
-    rightBoundary = 350
-    seconds = gameInfo.seconds
-    minutes = gameInfo.minutes
-    times = []
 }
 
 document.getElementById("difficultySelect").addEventListener("change", () => {
