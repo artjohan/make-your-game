@@ -22,6 +22,7 @@ const init = () => {
     gameInfo.gameOver = false
     gameInfo.score = 0
     gameInfo.scrolledDistance = 0
+    gameInfo.endPoint = gameInfo.map.tiles.length*30*25-500
     if(gameInfo.enemySpeed === 1) {
         gameInfo.lives = 1
     } else {
@@ -58,6 +59,7 @@ function start(map, first = true) {
 }
 
 function gameloop() {
+    console.log(gameInfo.endPoint)
     scoreboard.textContent = "Score: " + gameInfo.score
     fpsCounter.textContent = "FPS: " + calculateFPS()
     if(player.position.y < 850 && !gameInfo.hasWon) {
@@ -129,7 +131,7 @@ const movePlayer = () => {
             player.velocity.x = player.defaultVelocity
         } else {
             player.velocity.x = 0
-            if(gameInfo.scrolledDistance <= gameInfo.map.endPoint-250) {
+            if(gameInfo.scrolledDistance <= gameInfo.endPoint-250) {
                 if(gameInfo.scrolledDistance > 0) {
                     leftBoundary = 250
                 }
@@ -145,7 +147,7 @@ const movePlayer = () => {
         } else {
             player.velocity.x = 0
             if(gameInfo.scrolledDistance > 0) {
-                if(gameInfo.scrolledDistance <= gameInfo.map.endPoint-250) {
+                if(gameInfo.scrolledDistance <= gameInfo.endPoint-250) {
                     rightBoundary = 450
                 }
                 moveElements(player.defaultVelocity)
@@ -155,7 +157,7 @@ const movePlayer = () => {
         }
     } else {
         player.velocity.x = 0
-        if(player.position.x > rightBoundary+1 && gameInfo.scrolledDistance <= gameInfo.map.endPoint-250) {
+        if(player.position.x > rightBoundary+1 && gameInfo.scrolledDistance <= gameInfo.endPoint-250) {
             moveElements(-player.defaultVelocity)
             player.position.x -= player.defaultVelocity
         }

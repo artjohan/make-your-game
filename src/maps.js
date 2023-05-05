@@ -103,7 +103,6 @@ export const maps = {
         tiles: [
             map1tile1, map1tile2, map1tile3
         ],
-        endPoint: 1750,
         startPos: {
             x: 0,
             y: 550
