@@ -8,6 +8,10 @@ export var player
 
 var leftBoundary, rightBoundary, times, requestID, timerStart, now, minutes, seconds
 
+const fpsData = {
+    cap: 60,
+}
+
 // initialize data, useful for starting the game/resetting the map more easily
 const init = () => {
     gameElements = {
@@ -25,7 +29,7 @@ const init = () => {
     gameInfo.scrolledDistance = 0
     gameInfo.endPoint = gameInfo.map.tiles.length*30*25-500 // the endpoint is the length of the map times 25 (since each tile is 25x25px) - 500px for the movement boundaries
 
-    if(gameInfo.enemySpeed === 1) {
+    if(gameInfo.enemySpeed === 2.4) {
         gameInfo.lives = 1
     } else {
         gameInfo.lives = 3
@@ -42,7 +46,7 @@ const init = () => {
 function start(map, first = true) {
     init()
 
-    createArenaElements()
+    displayArenaElements()
     mapTerrain(map)
     if(first) {
         addPauseListener()
@@ -58,6 +62,11 @@ function start(map, first = true) {
     player = new Player(map.startPos)
     player.draw()
 
+    // fps capping information
+    fpsData.interval = 1000/fpsData.cap
+    fpsData.then = Date.now()
+    fpsData.startTime = fpsData.then
+
     // keeps count of time since the game was started
     timerStart = Date.now()
     gameloop()
@@ -65,8 +74,36 @@ function start(map, first = true) {
 
 // main loop that runs using requestanimationframe, controls the game
 function gameloop() {
-    scoreboard.textContent = "Score: " + gameInfo.score
-    fpsCounter.textContent = "FPS: " + calculateFPS()
+    fpsData.now = Date.now()
+    fpsData.elapsed = fpsData.now - fpsData.then
+
+    // caps fps at the desired rate
+    if(fpsData.elapsed > fpsData.interval) {
+        fpsData.then = fpsData.now - (fpsData.elapsed % fpsData.interval)
+        document.getElementById("scoreboard").textContent = "Score: " + gameInfo.score
+        document.getElementById("fpsCounter").textContent = "FPS: " + calculateFPS()
+        // checking if the player has fallen of the map, removes a life and resets player if there are lives left, otherwise kills the player
+        if(player.position.y > 725) {
+            if(gameInfo.lives > 1) {
+                player.stunned = true
+            } else {
+                player.dead = true
+            }
+        }
+        // controls all the movement on the screen if the game isn't paused
+        if(!gameInfo.paused) {
+            player.update()
+            // player update is separate so there can be a death animation
+            if(!player.dead && !player.stunned) {
+                updateTimer()
+                terrainCollision()
+                updateTerrain()
+                movePlayer()
+                checkWin()
+            }
+        }
+    }
+    
     // checks if player has died or has been stunned, if neither of those things are true, requestanimationframe runs at a normal rate
     if(player.position.y < 850 && !gameInfo.hasWon) {
         // stage gets reset if player is stunned (has lost a life)
@@ -79,19 +116,9 @@ function gameloop() {
         } else {
             requestID = requestAnimationFrame(gameloop)
         }
-    }
-    // checking if the player has fallen of the map, removes a life and resets player if there are lives left, otherwise kills the player
-    if(player.position.y > 725) {
-        if(gameInfo.lives > 1) {
-            player.stunned = true
-        } else {
-            player.dead = true
-        }
-    }
-    // creates/displays the end screen if player has died/completed the level
-    if(player.position.y > 850 || gameInfo.hasWon) {
+    } else { // creates/displays the end screen if player has died/completed the level
         if(!gameInfo.hasWon) {
-            lifeCounter.textContent = "Lives: 0"
+            document.getElementById("lifeCounter").textContent = "Lives: 0"
         }
         setTimeout(() => {
             if(!document.getElementById("endScreen")) {
@@ -100,18 +127,6 @@ function gameloop() {
                 document.getElementById("endScreen").style.visibility = "visible"
             }
         }, 1000)
-    }
-    // controls all the movement on the screen if the game isn't paused
-    if(!gameInfo.paused) {
-        player.update()
-        // player update is separate so there can be a death animation
-        if(!player.dead && !player.stunned) {
-            updateTimer()
-            updateTerrain()
-            movePlayer()
-            terrainCollision()
-            checkWin()
-        }
     }
 }
 
@@ -171,16 +186,20 @@ const movePlayer = () => {
             }
         }
     } else {
-        // moves the player and elements if the player is standing still but is still moving beyong the screen boundary, i.e. moving platforms
         player.velocity.x = 0
-        if(player.position.x > rightBoundary+1 && gameInfo.scrolledDistance <= gameInfo.endPoint-250) {
-            moveElements(-player.defaultVelocity)
-            player.position.x -= player.defaultVelocity
-        }
-        if(player.position.x < leftBoundary-1 && gameInfo.scrolledDistance > 0) {
-            moveElements(player.defaultVelocity)
-            player.position.x += player.defaultVelocity
-        }
+    }
+}
+
+// moves the player and elements if the player is standing still but is still moving beyong the screen boundary, i.e. moving platforms
+export const scrollWhenStationary = () => {
+    player.velocity.x = 0
+    if(player.position.x > rightBoundary+1 && gameInfo.scrolledDistance <= gameInfo.endPoint-250) {
+        moveElements(-player.defaultVelocity)
+        player.position.x -= player.defaultVelocity
+    }
+    if(player.position.x < leftBoundary-1 && gameInfo.scrolledDistance > 0) {
+        moveElements(player.defaultVelocity)
+        player.position.x += player.defaultVelocity
     }
 }
 
@@ -251,7 +270,7 @@ const updateTimer = () => {
                 minutes--
                 seconds = 59
             }
-            updateTimerVisual(timer)
+            updateTimerVisual(document.getElementById("timer"))
             timerStart = now
         }
     }
@@ -269,40 +288,16 @@ const updateTimerVisual = (field) => {
     field.textContent += seconds
 }
 
-// creates all the html elements that are needed for the arena and scoreboard
-const createArenaElements = () => {
-    const informationDiv = document.createElement("div")
-    informationDiv.id = "informationDiv"
-    informationDiv.className = "informationDiv"
-    document.body.appendChild(informationDiv)
+// displays all the html elements that are needed for the arena and scoreboard
+const displayArenaElements = () => {
+    updateTimerVisual(document.getElementById("timer"))
+    document.getElementById("lifeCounter").textContent = "Lives: " + gameInfo.lives
+    document.getElementById("informationDiv").style.display = "flex"
 
     const arena = document.createElement("div")
     arena.id = "arenaDiv"
     arena.className = "arena"
     document.body.appendChild(arena)
-
-    const scoreboard = document.createElement("div")
-    scoreboard.className = "scoreboard"
-    scoreboard.id = "scoreboard"
-
-    const timer = document.createElement("div")
-    timer.className = "timer"
-    timer.id = "timer"
-    updateTimerVisual(timer)
-
-    const lifeCounter = document.createElement("div")
-    lifeCounter.className = "lifeCounter"
-    lifeCounter.id = "lifeCounter"
-    lifeCounter.textContent = "Lives: " + gameInfo.lives
-
-    const fpsCounter = document.createElement("div")
-    fpsCounter.className = "fpsCounter"
-    fpsCounter.id = "fpsCounter"
-
-    informationDiv.appendChild(scoreboard)
-    informationDiv.appendChild(lifeCounter)
-    informationDiv.appendChild(timer)
-    informationDiv.appendChild(fpsCounter)
 }
 
 // creates all the html elements that are needed for the pause menu
@@ -336,21 +331,23 @@ const createPauseMenu = () => {
 // creates all the html elements that are needed for the end screen
 const createEndScreen = () => {
     var endScreen = document.createElement("div")
-    endScreen.style.position = "absolute"
     endScreen.id = "endScreen"
     endScreen.className = "pauseMenu"
     endScreen.style.paddingTop = "50px"
     document.getElementById("arenaDiv").appendChild(endScreen)
 
     var endMsg = document.createElement("header")
+    endMsg.id = "endMsg"
     endMsg.style.fontSize = "70px"
-    
+
     var scoreMsg = document.createElement("header")
+    scoreMsg.id = "scoreMsg"
     scoreMsg.style.fontSize = "60px"
     scoreMsg.style.color = "white"
     scoreMsg.style.marginTop = "30px"
 
     var timeBonus = document.createElement("header")
+    timeBonus.id = "timeBonus"
     timeBonus.style.color = "white"
     timeBonus.style.fontSize = "30px"
     timeBonus.style.marginTop = "10px"
@@ -365,6 +362,12 @@ const createEndScreen = () => {
     restart.style.fontSize = "30px"
     restart.style.marginTop = "60px"
 
+    endScreen.appendChild(endMsg)
+    endScreen.appendChild(scoreMsg)
+    endScreen.appendChild(timeBonus)
+    endScreen.appendChild(toMainMenu)
+    endScreen.appendChild(restart)
+
     // separate messages for the end screen depending on game outcome
     if(player.dead) { // player died
         if(minutes <= 0 && seconds <= 0) {
@@ -377,7 +380,7 @@ const createEndScreen = () => {
         restart.textContent = "Press \"R\" to try again"
     } else { // player won
         endMsg.style.color = "green"
-        if(gameInfo.enemySpeed === 1) { // separate message for the impossible difficulty
+        if(gameInfo.enemySpeed === 2.4) { // separate message for the impossible difficulty
             endMsg.textContent = "You did the impossible!"
             toMainMenu.textContent = "You can press \"M\" to go back to the main menu or \"R\" to try to beat your score, but there are no more challenges for you"
         } else {
@@ -386,39 +389,37 @@ const createEndScreen = () => {
             restart.textContent = "Press \"R\" to play this difficulty again"
         }
     }
-
-    endScreen.appendChild(endMsg)
-    endScreen.appendChild(scoreMsg)
-
-    // adds bonus points for time left over
+    
     if(gameInfo.hasWon) {
-        endScreen.appendChild(timeBonus)
-        // updates the timebonus counter every 10ms for a better visual experience
-        var scoreInterval = setInterval(() => {
-            seconds--
-            gameInfo.score+= 10*gameInfo.scoreMultiplier
-            if(minutes === 0 && seconds < 0) {
-                clearInterval(scoreInterval)
-                gameInfo.gameOver = true
-                timeBonus.textContent = "Time bonus added!"
-            } else {
-                if(seconds === -1) {
-                    minutes--
-                    seconds = 59
-                }
-                // update both timers visually
-                updateTimerVisual(timeBonus)
-                updateTimerVisual(timer)
-                scoreMsg.textContent = "Score: " + gameInfo.score
-                scoreboard.textContent = "Score: " + gameInfo.score
-            }
-        }, 10)
+        addTimeBonus()
     } else {
         gameInfo.gameOver = true
         scoreMsg.textContent = "Score: " + gameInfo.score
     }
-    endScreen.appendChild(toMainMenu)
-    endScreen.appendChild(restart)
+}
+
+// adds bonus points from time left over to the score
+const addTimeBonus = () => {
+    // updates the timebonus counter every 10ms for a better visual experience
+    var scoreInterval = setInterval(() => {
+        seconds--
+        gameInfo.score+= 10*gameInfo.scoreMultiplier
+        if(minutes === 0 && seconds < 0) {
+            clearInterval(scoreInterval)
+            gameInfo.gameOver = true
+            document.getElementById("timeBonus").textContent = "Time bonus added!"
+        } else {
+            if(seconds === -1) {
+                minutes--
+                seconds = 59
+            }
+            // update both timers visually
+            updateTimerVisual(document.getElementById("timeBonus"))
+            updateTimerVisual(document.getElementById("timer"))
+            document.getElementById("scoreMsg").textContent = "Score: " + gameInfo.score
+            document.getElementById("scoreboard").textContent = "Score: " + gameInfo.score
+        }
+    }, 10)
 }
 
 // resets the stage when the player loses a life, keeping the points status the same so they don't need to be recollected and teleports the player to the start
@@ -446,13 +447,13 @@ const resetStage = () => {
     })
     // removes a life
     gameInfo.lives--
-    lifeCounter.textContent = "Lives: " + gameInfo.lives
+    document.getElementById("lifeCounter").textContent = "Lives: " + gameInfo.lives
 }
 
 // adds eventlistener for the pause and endscreen menu, only gets called once on initialization, not on resetting the stage
 const addPauseListener = () => {
     document.body.addEventListener("keyup", (event) => {
-        if(!player.stunned && !player.dead && (event.key === "Escape" || event.key.toLowerCase() === "p")) {
+        if(!player.stunned && !player.dead && !gameInfo.hasWon && (event.key === "Escape" || event.key.toLowerCase() === "p")) {
             if(!gameInfo.paused) {
                 gameInfo.paused = true
                 if(!document.getElementById("pauseMenu")) {
@@ -468,7 +469,6 @@ const addPauseListener = () => {
         // if the player decides to reset the game the arena and scoreboard get removed and the animationframe gets cancelled, then the start function gets called again
         if(event.key.toLowerCase() === "r" && (gameInfo.paused || gameInfo.gameOver)) {
             document.getElementById("arenaDiv").remove()
-            document.getElementById("informationDiv").remove()
             cancelAnimationFrame(requestID)
             start(gameInfo.map, false)
         }
@@ -503,29 +503,29 @@ document.getElementById("startBtn").addEventListener("click", () => {
     var difficulty = document.getElementById("difficultySelect").value
     switch(difficulty) {
         case "easy":
-            gameInfo.enemySpeed = 0.3
-            gameInfo.stunTime = 432
+            gameInfo.enemySpeed = 0.72
+            gameInfo.stunTime = 180
             gameInfo.scoreMultiplier = 1
             gameInfo.minutes = 5
             gameInfo.seconds = 0
             break
         case "medium":
-            gameInfo.enemySpeed = 0.5
-            gameInfo.stunTime = 288
+            gameInfo.enemySpeed = 1.2
+            gameInfo.stunTime = 120
             gameInfo.scoreMultiplier = 2
             gameInfo.minutes = 4
             gameInfo.seconds = 0
             break
         case "hard":
-            gameInfo.enemySpeed = 0.7
-            gameInfo.stunTime = 144
+            gameInfo.enemySpeed = 1.68
+            gameInfo.stunTime = 60
             gameInfo.scoreMultiplier = 3
             gameInfo.minutes = 3
             gameInfo.seconds = 0
             break
         case "impossible":
-            gameInfo.enemySpeed = 1
-            gameInfo.stunTime = 77
+            gameInfo.enemySpeed = 2.4
+            gameInfo.stunTime = 30
             gameInfo.scoreMultiplier = 5
             gameInfo.minutes = 2
             gameInfo.seconds = 0

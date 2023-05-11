@@ -1,5 +1,4 @@
-import { gameElements } from "./game.js"
-import { player, gameInfo } from "./game.js"
+import { gameElements, player, gameInfo, scrollWhenStationary } from "./game.js"
 
 export class Player {
     constructor(pos) {
@@ -29,8 +28,8 @@ export class Player {
         this.dead = false
         this.deathJump = false
 
-        this.defaultVelocity = 1.5
-        this.originalVelocity = 1.5
+        this.defaultVelocity = 3.6
+        this.originalVelocity = 3.6
 
         // array of images for animating the player
         this.animationArray = ["../media/pacphase0.png", "../media/pacphase1.png", "../media/pacphase2.png", "../media/pacphase1.png"]
@@ -52,10 +51,10 @@ export class Player {
         }
         if((this.keyPressed.right || this.keyPressed.left) && !this.dead) {
             this.animationIndex++
-            if(this.animationIndex === 60) { // changes animation frame every 20 ticks
+            if(this.animationIndex === 24) { // changes animation frame every 6 ticks
                 this.animationIndex = 0
             }
-            this.playerDiv.style.background = `url(${this.animationArray[Math.floor(this.animationIndex/15)]})`
+            this.playerDiv.style.background = `url(${this.animationArray[Math.floor(this.animationIndex/6)]})`
         }
         this.playerDiv.style.width = `${this.width}px`
         this.playerDiv.style.height = `${this.height}px`
@@ -88,8 +87,8 @@ export class Player {
                 this.crouchReleased = false
             }
             // gravity
-            if(this.velocity.y < 9.8) {
-                this.velocity.y += 0.2
+            if(this.velocity.y < 24) {
+                this.velocity.y += 1.2
             }
         }
     }
@@ -105,7 +104,7 @@ export class Player {
             break
             case "ArrowUp":
                 if(player.velocity.y == 0 && player.height == 40) {
-                    player.velocity.y -= 10
+                    player.velocity.y -= 24
                 }
             break
             case "ArrowDown":
@@ -130,7 +129,7 @@ export class Player {
             break
             case "ArrowUp":
                 if(player.velocity.y == 0 && player.height == 40) {
-                    player.velocity.y -= 10
+                    player.velocity.y -= 24
                 }
             break
             case "ArrowDown":
@@ -258,6 +257,9 @@ export class MovingPlatform {
         } else {
             this.carrying = false
         }
+        if(this.carrying && !player.keyPressed.left && !player.keyPressed.right) {
+            scrollWhenStationary()
+        }
         // following if statements move the platform vertically/horizontally forwards/backwards alongside with the player if the player is on it
         if(this.back.x) {
             this.position.x -= this.velocity.x
@@ -310,7 +312,7 @@ export class MovingPlatform {
 
     // checks if the platform is carrying the player
     carriesPlayer() {
-        if(player.position.y + player.height <= this.position.y-4 && player.position.y + player.height + player.velocity.y >= this.position.y-8 &&
+        if(player.position.y + player.height <= this.position.y && player.position.y + player.height + player.velocity.y >= this.position.y-8 &&
             player.position.x + player.width >= this.position.x && player.position.x - this.width <= this.position.x) {
             return true
         } else {
@@ -368,7 +370,7 @@ export class CollisionTerrain {
 
     // checks if the top of an object like the player or an enemy is colliding with the base of the terrain
     collidesWithBase(object) {
-        if(!object.dead && object.position.y <= this.position.y + this.height - 1 && object.position.y + object.height + object.velocity.y >= this.position.y + this.height &&
+        if(!object.dead && object.position.y <= this.position.y + this.height - object.velocity.y && object.position.y + object.height >= this.position.y + this.height &&
             object.position.x + object.width >= this.position.x && object.position.x - this.width <= this.position.x) {
             return true
         } else {
@@ -378,7 +380,7 @@ export class CollisionTerrain {
 
     // checks if the left side of an object like the player or an enemy is colliding with the right side of the terrain
     collidesWithRightSide(object) {
-        if(!object.dead && object.position.x <= this.position.x+this.width + 3 && object.position.x >= this.position.x+this.width && 
+        if(!object.dead && object.position.x <= this.position.x+this.width + player.defaultVelocity && object.position.x >= this.position.x+this.width && 
             object.position.y <= this.position.y + this.height && object.position.y + object.height + object.velocity.y >= this.position.y) {
             return true
         } else {
@@ -388,7 +390,7 @@ export class CollisionTerrain {
 
     // checks if the right side of an object like the player or an enemy is colliding with the left side of the terrain
     collidesWithLeftSide(object) {
-        if(!object.dead && object.position.x + object.width >= this.position.x - 3 && object.position.x + object.width <= this.position.x && 
+        if(!object.dead && object.position.x + object.width >= this.position.x - player.defaultVelocity && object.position.x + object.width <= this.position.x && 
             object.position.y <= this.position.y + this.height && object.position.y + object.height + object.velocity.y >= this.position.y) {
             return true
         } else {
@@ -458,7 +460,7 @@ export class LinearEnemy {
             if(this.hasBeenStunned()) { // stuns enemy if it has been jumped on
                 this.stunned = true
                 player.velocity.y = 0
-                player.velocity.y -= 7
+                player.velocity.y -= 16.8
             }
             if(this.hasKilledPlayer()) { // removed life from player if the player is touched by the enemy
                 if(gameInfo.lives > 1) {
@@ -515,7 +517,7 @@ export class LinearEnemy {
     // checks if the enemy has been jumped on, if that is the case, the enemy gets stunned
     hasBeenStunned() {
         if(!player.dead && player.position.x + player.width >= this.position.x && player.position.x <= this.position.x + this.width &&
-           player.position.y + player.height <= this.position.y && player.position.y + player.height >= this.position.y-10 &&
+           player.position.y + player.height <= this.position.y && player.position.y + player.height >= this.position.y-player.velocity.y &&
            player.velocity.y >= 0) {
             return true
         }
@@ -591,9 +593,9 @@ const toggleVisibility = (element, divName) => {
 const deathAnimation = (object) => {
     if(!object.deathJump) {
         object.velocity.y = 0
-        object.velocity.y -= 5
+        object.velocity.y -= 12
         object.deathJump = true
     }
-    object.velocity.y += 0.2
+    object.velocity.y += 1.2
     object.position.y += object.velocity.y
 }
